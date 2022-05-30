@@ -28,8 +28,6 @@ namespace PraktikumWeek_14
 
         DataTable dtDGV = new DataTable();
         DataTable dtTeam = new DataTable();
-        DataTable dtScorrer = new DataTable();
-        DataTable dtWorstDisc = new DataTable();
 
         public void team(int index)
         {
@@ -46,34 +44,32 @@ namespace PraktikumWeek_14
             sqlQuery = "select p.player_name as 'Player name', (sum(if(dm.`type` = 'GO',1,0)) + sum(if(dm.`type` = 'GP',1,0))) as 'Jumlah goal'  from dmatch dm, player p, team t where p.player_id = dm.player_id and dm.team_id = t.team_id and t.team_name = '" + lblTeamName.Text + "' group by 1 order by 2 desc;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
-            sqlAdapter.Fill(dtScorrer);
-            lblTopScore.Text = dtScorrer.Rows[index][0].ToString();
-            lblJumlahGoal.Text = dtScorrer.Rows[index][1].ToString();
+            sqlAdapter.Fill(dtTeam);
+            lblTopScore.Text = dtTeam.Rows[index][0].ToString();
+            lblJumlahGoal.Text = dtTeam.Rows[index][1].ToString();
         }
         public void WorstDisc(int index)
         {
             sqlQuery = "select p.player_name as 'Player name', (sum(if(dm.`type` = 'CY',1,0)) + sum(if(dm.`type` = 'CR',3,0))) as 'Poin Merah' from dmatch dm, player p, team t where p.player_id = dm.player_id and dm.team_id = t.team_id and t.team_name = '" + lblTeamName.Text + "' group by 1 order by 2 desc;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
-            sqlAdapter.Fill(dtWorstDisc);
-            lblWorstDisc.Text = dtWorstDisc.Rows[index][0].ToString();
+            sqlAdapter.Fill(dtTeam);
+            lblWorstDisc.Text = dtTeam.Rows[index][0].ToString();
         }
         public void DGV(int index)
         {
-
+            sqlQuery = $"SELECT * FROM (SELECT m.match_date, IF(m.team_home = '{dtTeam.Rows[index][3].ToString()}', 'HOME', 'AWAY') AS 'Home / Away', CONCAT('vs ', IF(m.team_home = '{dtTeam.Rows[index][3].ToString()}', tAway.team_name, tHome.team_name)) AS 'Lawan', CONCAT(goal_home, ' - ', goal_away) AS 'Score' FROM `match` m LEFT JOIN team tHome ON m.team_home = tHome.team_id LEFT JOIN team tAway ON tAway.team_id = m.team_away WHERE m.team_home = '{dtTeam.Rows[index][3].ToString()}' OR m.team_away = '{dtTeam.Rows[index][3].ToString()}' ORDER BY m.match_id DESC LIMIT 5) dt ORDER BY 1;";
+            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            sqlAdapter.Fill(dtDGV);
+            DGV5Match.DataSource = dtDGV;
         }
         private void Form1_Load(object sender, EventArgs e)
         {
             team(index);
             TopScor(index);
             WorstDisc(index);
-            
-
-            sqlQuery = ("select m.match_date, if(t.team_id = m.team_home, 'Home', if(t.team_id = m.team_away, 'Away', null)) from `match` m, team t, dmatch dm where t.team_id = '' and m.match_id = dm.match_id ORDER BY 2 DESC LIMIT 5;");
-            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
-            sqlAdapter = new MySqlDataAdapter(sqlCommand);
-            sqlAdapter.Fill(dtDGV);
-            DGV5Match.DataSource = dtDGV;
+            DGV(index);
         }
 
         private void btnFirst_Click(object sender, EventArgs e)
@@ -83,6 +79,7 @@ namespace PraktikumWeek_14
             team(index);
             TopScor(index);
             WorstDisc(index);
+            DGV(index);
         }
 
         private void btnPrev_Click(object sender, EventArgs e)
@@ -98,6 +95,7 @@ namespace PraktikumWeek_14
             team(index);
             TopScor(index);
             WorstDisc(index);
+            DGV(index);
         }
 
         private void btnNext_Click(object sender, EventArgs e)
@@ -113,6 +111,7 @@ namespace PraktikumWeek_14
             team(index);
             TopScor(index);
             WorstDisc(index);
+            DGV(index);
         }
 
         private void btnLast_Click(object sender, EventArgs e)
@@ -122,6 +121,7 @@ namespace PraktikumWeek_14
             team(index);
             TopScor(index);
             WorstDisc(index);
+            DGV(index);
         }
     }
 }
